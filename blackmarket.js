@@ -192,7 +192,8 @@ function GMstock8(){
 	submitIfNotPreview();
 }
 function GMstock9(){
-        ensureFuel();
+	ensureFuel();
+
 	const loadout = {
 		"Food": 15,
 		"Energy": 15,
@@ -201,20 +202,45 @@ function GMstock9(){
 		"Optical components": 30
 	};
 
+	var total_weight = 0;
 	for(var item in loadout){
-		var index = items.indexOf(item);
+		total_weight += loadout[item];
+	}
 
-		if(index === -1){
-			continue;
+	var free_space = ship_space.allowedSpace() - ensure_fuel_space;
+
+	var targets = {};
+	var used = 0;
+
+	for(var item in loadout){
+		var amount = Math.floor(free_space * loadout[item] / total_weight);
+		targets[item] = amount;
+		used += amount;
+	}
+
+	var leftover = free_space - used;
+
+	while(leftover > 0){
+		for(var item in targets){
+			if(leftover <= 0) break;
+			targets[item]++;
+			leftover--;
 		}
+	}
 
-		if(commodities[index].buy_element != null){
-			commodities[index].buy(loadout[item]);
+	for(var item in targets){
+		var index = items.indexOf(item);
+		if(index === -1) continue;
+
+		var need = targets[item] - commodities[index].ship_stock;
+		if(need > 0 && commodities[index].buy_element != null){
+			commodities[index].buy(need);
 		}
 	}
 
 	submitIfNotPreview();
 }
+
 
     function loadConstructionMaterials() {
         unload(["Metal", "Ore", "Energy"]);
