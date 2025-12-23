@@ -190,7 +190,8 @@ function GMstock8(){
 	}
 
 	submitIfNotPreview();
-}function GMstock9(){
+}
+function GMstock9(){
 	ensureFuel();
 
 	var base = {
@@ -203,44 +204,37 @@ function GMstock8(){
 
 	var items_list = ["Food","Energy","Water","Gem stones","Optical components"];
 
-	// current cargo and free space
+	// compute total held of GM items
 	var existing = {};
-	var existing_total = 0;
+	var held_total = 0;
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		var index = items.indexOf(item);
 		var held = (index !== -1) ? commodities[index].ship_stock : 0;
 		existing[item] = held;
-		existing_total += held;
+		held_total += held;
 	}
 
+	// total free space available
 	var free_space = ship_space.allowedSpace();
-	var final_total = existing_total + free_space;
 
-	// sum of base values
+	// compute scale factor so final cargo fits free space
 	var base_sum = 0;
 	for(var i=0;i<items_list.length;i++){
 		base_sum += base[items_list[i]];
 	}
 
-	// compute scaled amounts for each item
-	var targets = {};
-	var used = 0;
-	for(var i=0;i<items_list.length;i++){
-		var item = items_list[i];
-		var amount = Math.floor(base[item]/base_sum * final_total);
-		targets[item] = amount;
-		used += amount;
+	var total_required = base_sum;
+	var scale = 1;
+	if(total_required > free_space + held_total){
+		scale = (free_space + held_total)/total_required;
 	}
 
-	// distribute any leftover space
-	var leftover = final_total - used;
-	var idx = 0;
-	while(leftover > 0){
-		var item = items_list[idx % items_list.length];
-		targets[item]++;
-		leftover--;
-		idx++;
+	// compute target amounts
+	var targets = {};
+	for(var i=0;i<items_list.length;i++){
+		var item = items_list[i];
+		targets[item] = Math.floor(base[item] * scale);
 	}
 
 	// buy only what is missing
@@ -257,6 +251,7 @@ function GMstock8(){
 
 	submitIfNotPreview();
 }
+
 
 
 
