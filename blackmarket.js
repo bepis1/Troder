@@ -167,11 +167,11 @@ function blackmarket() {
 function GMstock(){
         ensureFuel();
 	const loadout = {
-		"Food": 15,
-		"Energy": 15,
-		"Water": 15,
-		"Gem stones": 129,
-		"Optical components": 30
+		"Food": 14,
+		"Energy": 14,
+		"Water": 14,
+		"Gem stones": 116,
+		"Optical components": 27
 	};
 
 	for(var item in loadout){
