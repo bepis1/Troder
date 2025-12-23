@@ -207,18 +207,27 @@ function GMstock9(){
 		total_weight += loadout[item];
 	}
 
-	var free_space = ship_space.allowedSpace() - ensure_fuel_space;
+	var total_existing = 0;
+	for(var item in loadout){
+		var index = items.indexOf(item);
+		if(index !== -1){
+			total_existing += commodities[index].ship_stock;
+		}
+	}
+
+	var total_space = ship_space.allowedSpace() - ensure_fuel_space;
+	var target_total = total_space;
 
 	var targets = {};
 	var used = 0;
 
 	for(var item in loadout){
-		var amount = Math.floor(free_space * loadout[item] / total_weight);
+		var amount = Math.floor(target_total * loadout[item] / total_weight);
 		targets[item] = amount;
 		used += amount;
 	}
 
-	var leftover = free_space - used;
+	var leftover = target_total - used;
 
 	while(leftover > 0){
 		for(var item in targets){
@@ -232,7 +241,9 @@ function GMstock9(){
 		var index = items.indexOf(item);
 		if(index === -1) continue;
 
-		var need = targets[item] - commodities[index].ship_stock;
+		var current = commodities[index].ship_stock;
+		var need = targets[item] - current;
+
 		if(need > 0 && commodities[index].buy_element != null){
 			commodities[index].buy(need);
 		}
@@ -240,6 +251,7 @@ function GMstock9(){
 
 	submitIfNotPreview();
 }
+
 
 
     function loadConstructionMaterials() {
