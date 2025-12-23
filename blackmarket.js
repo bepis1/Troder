@@ -208,32 +208,19 @@ function GMstock9(){
 		total_weight += loadout[item];
 	}
 
-	var existing_total = 0;
-	var existing = {};
-
-	for(var item in loadout){
-		var index = items.indexOf(item);
-		if(index !== -1){
-			existing[item] = commodities[index].ship_stock;
-			existing_total += existing[item];
-		}else{
-			existing[item] = 0;
-		}
-	}
-
-	// ship_space.allowedSpace() == FREE SPACE
-	var final_total = existing_total + ship_space.allowedSpace();
+	// ship_space.allowedSpace() is FREE space
+	var free_space = ship_space.allowedSpace();
 
 	var targets = {};
 	var used = 0;
 
 	for(var item in loadout){
-		var amount = Math.floor(final_total * loadout[item] / total_weight);
+		var amount = Math.floor(free_space * loadout[item] / total_weight);
 		targets[item] = amount;
 		used += amount;
 	}
 
-	var leftover = final_total - used;
+	var leftover = free_space - used;
 
 	while(leftover > 0){
 		for(var item in targets){
@@ -247,14 +234,14 @@ function GMstock9(){
 		var index = items.indexOf(item);
 		if(index === -1) continue;
 
-		var need = targets[item] - existing[item];
-		if(need > 0 && commodities[index].buy_element != null){
-			commodities[index].buy(need);
+		if(commodities[index].buy_element != null){
+			commodities[index].buy(targets[item]);
 		}
 	}
 
 	submitIfNotPreview();
 }
+
 
 
 
