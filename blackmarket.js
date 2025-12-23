@@ -207,16 +207,23 @@ function GMstock9(){
 		total_weight += loadout[item];
 	}
 
-	var total_existing = 0;
+	var existing = {};
+	var existing_total = 0;
+
 	for(var item in loadout){
 		var index = items.indexOf(item);
 		if(index !== -1){
-			total_existing += commodities[index].ship_stock;
+			existing[item] = commodities[index].ship_stock;
+			existing_total += existing[item];
+		}else{
+			existing[item] = 0;
 		}
 	}
 
-	var total_space = ship_space.allowedSpace() - ensure_fuel_space;
-	var target_total = total_space;
+	var free_space = ship_space.allowedSpace() - ensure_fuel_space - existing_total;
+	if(free_space < 0) free_space = 0;
+
+	var target_total = existing_total + free_space;
 
 	var targets = {};
 	var used = 0;
@@ -236,6 +243,20 @@ function GMstock9(){
 			leftover--;
 		}
 	}
+
+	for(var item in targets){
+		var index = items.indexOf(item);
+		if(index === -1) continue;
+
+		var need = targets[item] - existing[item];
+		if(need > 0 && commodities[index].buy_element != null){
+			commodities[index].buy(need);
+		}
+	}
+
+	submitIfNotPreview();
+}
+
 
 	for(var item in targets){
 		var index = items.indexOf(item);
