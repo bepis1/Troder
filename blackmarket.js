@@ -152,7 +152,10 @@ function blackmarket() {
             buttons.addButton("Sell Drugs", unloadDrugs);
         }
         if (GM_getValue(universe + '_blackmarket_load_GM_stocking_enabled', true)) {
-            buttons.addButton("GM Stocking", GMstock);
+            buttons.addButton("GM Stocking LV 8", GMstock);
+        }
+        if (GM_getValue(universe + '_blackmarket_load_GM_stocking_enabled', true)) {
+            buttons.addButton("GM Stocking LV 9", GMstock);
         }
         
         buttons.addStandardButtons();
