@@ -191,7 +191,6 @@ function GMstock8(){
 
 	submitIfNotPreview();
 }
-
 function GMstock9(){
 	ensureFuel();
 
@@ -239,7 +238,26 @@ function GMstock9(){
 	// expand proportionally to fill free space
 	var remaining = capacity - used;
 	while(remaining > 0){
-		for(var item
+		for(var item in base){
+			if(remaining <= 0) break;
+			targets[item]++;
+			remaining--;
+		}
+	}
+
+	// buy only what is missing
+	for(var item in targets){
+		var index = items.indexOf(item);
+		if(index === -1) continue;
+
+		var need = targets[item] - existing[item];
+		if(need > 0 && commodities[index].buy_element != null){
+			commodities[index].buy(need);
+		}
+	}
+
+	submitIfNotPreview();
+}
 
 
 
