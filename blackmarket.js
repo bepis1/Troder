@@ -191,7 +191,7 @@ function GMstock8(){
 
 	submitIfNotPreview();
 }
-function GMstock9(){
+	function GMstock9(){
 	ensureFuel();
 
 	const base = {
@@ -202,7 +202,8 @@ function GMstock9(){
 		"Optical components": 30
 	};
 
-	var capacity = ship_space.allowedSpace();
+	var free_space = ship_space.allowedSpace();
+
 	var existing = {};
 	var existing_total = 0;
 
@@ -213,12 +214,14 @@ function GMstock9(){
 		existing_total += held;
 	}
 
+	var final_total = free_space + existing_total;
+
 	var base_sum = 0;
 	for(var item in base){
 		base_sum += base[item];
 	}
 
-	// minimum scale to accommodate existing cargo
+	// minimum scale to not violate existing cargo
 	var scale = 0;
 	for(var item in base){
 		if(existing[item] > 0){
@@ -235,8 +238,8 @@ function GMstock9(){
 		used += amount;
 	}
 
-	// expand proportionally to fill free space
-	var remaining = capacity - used;
+	// fill remaining space proportionally
+	var remaining = final_total - used;
 	while(remaining > 0){
 		for(var item in base){
 			if(remaining <= 0) break;
@@ -245,7 +248,7 @@ function GMstock9(){
 		}
 	}
 
-	// buy only what is missing
+	// buy only the difference
 	for(var item in targets){
 		var index = items.indexOf(item);
 		if(index === -1) continue;
@@ -258,6 +261,7 @@ function GMstock9(){
 
 	submitIfNotPreview();
 }
+
 
 
 
