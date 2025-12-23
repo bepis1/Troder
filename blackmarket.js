@@ -208,25 +208,32 @@ function GMstock9(){
 		total_weight += loadout[item];
 	}
 
+	var existing_total = 0;
 	var existing = {};
+
 	for(var item in loadout){
 		var index = items.indexOf(item);
-		existing[item] = (index !== -1) ? commodities[index].ship_stock : 0;
+		if(index !== -1){
+			existing[item] = commodities[index].ship_stock;
+			existing_total += existing[item];
+		}else{
+			existing[item] = 0;
+		}
 	}
 
-	// FINAL cargo size, not free space
-	var target_total = ship_space.allowedSpace() - ensure_fuel_space;
+	// ship_space.allowedSpace() == FREE SPACE
+	var final_total = existing_total + ship_space.allowedSpace();
 
 	var targets = {};
 	var used = 0;
 
 	for(var item in loadout){
-		var amount = Math.floor(target_total * loadout[item] / total_weight);
+		var amount = Math.floor(final_total * loadout[item] / total_weight);
 		targets[item] = amount;
 		used += amount;
 	}
 
-	var leftover = target_total - used;
+	var leftover = final_total - used;
 
 	while(leftover > 0){
 		for(var item in targets){
