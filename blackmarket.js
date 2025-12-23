@@ -191,10 +191,10 @@ function GMstock8(){
 
 	submitIfNotPreview();
 }
-	function GMstock9(){
+function GMstock9(){
 	ensureFuel();
 
-	const base = {
+	var base = {
 		"Food": 15,
 		"Energy": 15,
 		"Water": 15,
@@ -216,12 +216,6 @@ function GMstock8(){
 
 	var final_total = free_space + existing_total;
 
-	var base_sum = 0;
-	for(var item in base){
-		base_sum += base[item];
-	}
-
-	// minimum scale to not violate existing cargo
 	var scale = 0;
 	for(var item in base){
 		if(existing[item] > 0){
@@ -238,7 +232,6 @@ function GMstock8(){
 		used += amount;
 	}
 
-	// fill remaining space proportionally
 	var remaining = final_total - used;
 	while(remaining > 0){
 		for(var item in base){
@@ -248,7 +241,6 @@ function GMstock8(){
 		}
 	}
 
-	// buy only the difference
 	for(var item in targets){
 		var index = items.indexOf(item);
 		if(index === -1) continue;
@@ -261,6 +253,7 @@ function GMstock8(){
 
 	submitIfNotPreview();
 }
+
 
 
 
