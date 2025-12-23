@@ -151,11 +151,11 @@ function blackmarket() {
         if (GM_getValue(universe + '_blackmarket_sell_drugs_enabled', true)) {
             buttons.addButton("Sell Drugs", unloadDrugs);
         }
-        if (GM_getValue(universe + '_blackmarket_load_GM_stocking_enabled', true)) {
-            buttons.addButton("GM Stocking LV 8", GMstock);
+        if (GM_getValue(universe + '_blackmarket_load_GM_stocking_enabled8', true)) {
+            buttons.addButton("GM Stocking LV 8", GMstock8);
         }
-        if (GM_getValue(universe + '_blackmarket_load_GM_stocking_enabled', true)) {
-            buttons.addButton("GM Stocking LV 9", GMstock);
+        if (GM_getValue(universe + '_blackmarket_load_GM_stocking_enabled9', true)) {
+            buttons.addButton("GM Stocking LV 9", GMstock9);
         }
         
         buttons.addStandardButtons();
@@ -167,7 +167,7 @@ function blackmarket() {
         submitIfNotPreview();
     }
 	
-function GMstock(){
+function GMstock8(){
         ensureFuel();
 	const loadout = {
 		"Food": 14,
@@ -191,7 +191,30 @@ function GMstock(){
 
 	submitIfNotPreview();
 }
+function GMstock9(){
+        ensureFuel();
+	const loadout = {
+		"Food": 15,
+		"Energy": 15,
+		"Water": 15,
+		"Gem stones": 129,
+		"Optical components": 30
+	};
 
+	for(var item in loadout){
+		var index = items.indexOf(item);
+
+		if(index === -1){
+			continue;
+		}
+
+		if(commodities[index].buy_element != null){
+			commodities[index].buy(loadout[item]);
+		}
+	}
+
+	submitIfNotPreview();
+}
 
     function loadConstructionMaterials() {
         unload(["Metal", "Ore", "Energy"]);
