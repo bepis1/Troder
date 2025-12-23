@@ -508,7 +508,6 @@ function troderOptions() {
             description: 'Enable \'Load GM stocking LV 8\' button',
             defaultValue: true,
         });
-    }
         blackmarket_options_box.addBooleanOption({
             variable: 'blackmarket_load_GM_stocking_enabled9',
             description: 'Enable \'Load GM stocking LV 9\' button',
