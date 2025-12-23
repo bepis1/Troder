@@ -190,8 +190,7 @@ function GMstock8(){
 	}
 
 	submitIfNotPreview();
-}
-function GMstock9(){
+}function GMstock9(){
 	ensureFuel();
 
 	var base = {
@@ -202,46 +201,51 @@ function GMstock9(){
 		"Optical components": 30
 	};
 
-	var free_space = ship_space.allowedSpace();
+	var items_list = ["Food","Energy","Water","Gem stones","Optical components"];
 
+	// current cargo and free space
 	var existing = {};
 	var existing_total = 0;
-
-	for(var item in base){
+	for(var i=0;i<items_list.length;i++){
+		var item = items_list[i];
 		var index = items.indexOf(item);
 		var held = (index !== -1) ? commodities[index].ship_stock : 0;
 		existing[item] = held;
 		existing_total += held;
 	}
 
-	var final_total = free_space + existing_total;
+	var free_space = ship_space.allowedSpace();
+	var final_total = existing_total + free_space;
 
-	var scale = 0;
-	for(var item in base){
-		if(existing[item] > 0){
-			scale = Math.max(scale, existing[item] / base[item]);
-		}
+	// sum of base values
+	var base_sum = 0;
+	for(var i=0;i<items_list.length;i++){
+		base_sum += base[items_list[i]];
 	}
 
+	// compute scaled amounts for each item
 	var targets = {};
 	var used = 0;
-
-	for(var item in base){
-		var amount = Math.floor(base[item] * scale);
+	for(var i=0;i<items_list.length;i++){
+		var item = items_list[i];
+		var amount = Math.floor(base[item]/base_sum * final_total);
 		targets[item] = amount;
 		used += amount;
 	}
 
-	var remaining = final_total - used;
-	while(remaining > 0){
-		for(var item in base){
-			if(remaining <= 0) break;
-			targets[item]++;
-			remaining--;
-		}
+	// distribute any leftover space
+	var leftover = final_total - used;
+	var idx = 0;
+	while(leftover > 0){
+		var item = items_list[idx % items_list.length];
+		targets[item]++;
+		leftover--;
+		idx++;
 	}
 
-	for(var item in targets){
+	// buy only what is missing
+	for(var i=0;i<items_list.length;i++){
+		var item = items_list[i];
 		var index = items.indexOf(item);
 		if(index === -1) continue;
 
@@ -253,6 +257,7 @@ function GMstock9(){
 
 	submitIfNotPreview();
 }
+
 
 
 
