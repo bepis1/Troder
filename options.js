@@ -504,11 +504,18 @@ function troderOptions() {
             max: 100,
         });
         blackmarket_options_box.addBooleanOption({
-            variable: 'blackmarket_load_GM_stocking_enabled',
-            description: 'Enable \'Load GM stocking\' button',
+            variable: 'blackmarket_load_GM_stocking_enabled8',
+            description: 'Enable \'Load GM stocking LV 8\' button',
             defaultValue: true,
         });
     }
+        blackmarket_options_box.addBooleanOption({
+            variable: 'blackmarket_load_GM_stocking_enabled9',
+            description: 'Enable \'Load GM stocking LV 9\' button',
+            defaultValue: true,
+        });
+    }
+
 
     function droidWashingOptions(subtab) {
         var droid_washing_instructions_box = subtab.addBox({
