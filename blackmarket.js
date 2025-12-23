@@ -195,7 +195,7 @@ function GMstock8(){
 function GMstock9(){
 	ensureFuel();
 
-	const loadout = {
+	const base = {
 		"Food": 15,
 		"Energy": 15,
 		"Water": 15,
@@ -203,44 +203,44 @@ function GMstock9(){
 		"Optical components": 30
 	};
 
-	var total_weight = 0;
-	for(var item in loadout){
-		total_weight += loadout[item];
+	var capacity = ship_space.allowedSpace();
+	var existing = {};
+	var existing_total = 0;
+
+	for(var item in base){
+		var index = items.indexOf(item);
+		var held = (index !== -1) ? commodities[index].ship_stock : 0;
+		existing[item] = held;
+		existing_total += held;
 	}
 
-	// ship_space.allowedSpace() is FREE space
-	var free_space = ship_space.allowedSpace();
+	var base_sum = 0;
+	for(var item in base){
+		base_sum += base[item];
+	}
+
+	// minimum scale to accommodate existing cargo
+	var scale = 0;
+	for(var item in base){
+		if(existing[item] > 0){
+			scale = Math.max(scale, existing[item] / base[item]);
+		}
+	}
 
 	var targets = {};
 	var used = 0;
 
-	for(var item in loadout){
-		var amount = Math.floor(free_space * loadout[item] / total_weight);
+	for(var item in base){
+		var amount = Math.floor(base[item] * scale);
 		targets[item] = amount;
 		used += amount;
 	}
 
-	var leftover = free_space - used;
+	// expand proportionally to fill free space
+	var remaining = capacity - used;
+	while(remaining > 0){
+		for(var item
 
-	while(leftover > 0){
-		for(var item in targets){
-			if(leftover <= 0) break;
-			targets[item]++;
-			leftover--;
-		}
-	}
-
-	for(var item in targets){
-		var index = items.indexOf(item);
-		if(index === -1) continue;
-
-		if(commodities[index].buy_element != null){
-			commodities[index].buy(targets[item]);
-		}
-	}
-
-	submitIfNotPreview();
-}
 
 
 
