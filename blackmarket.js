@@ -184,7 +184,7 @@ function GMstock9(){
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		var index = items.indexOf(item);
-		var held = (index !== -1) ? commodities[index].ship_stock : 0;
+		var held = (index !== -1 && commodities[index]) ? commodities[index].ship_stock : 0;
 		existing[item] = held;
 		held_total += held;
 	}
@@ -192,17 +192,18 @@ function GMstock9(){
 	// total free space available
 	var free_space = ship_space.allowedSpace();
 
-	// compute scale factor
+	// sum of base
 	var base_sum = 0;
 	for(var i=0;i<items_list.length;i++){
 		base_sum += base[items_list[i]];
 	}
 
+	// scale factor to fit items in space
 	var scale = 1;
-	if(base_sum > free_space + held_total){
+	if(base_sum > 0){
 		scale = (free_space + held_total)/base_sum;
 	} else {
-		scale = (free_space + held_total)/base_sum;
+		scale = 0;
 	}
 
 	// compute scaled floats
@@ -228,44 +229,36 @@ function GMstock9(){
 	// leftover space (could be negative)
 	var leftover = free_space + held_total - used_space;
 
-	// distribute leftover proportionally but cap so we never exceed allowed space
 	if(leftover !== 0){
+		// residual-corrected integer distribution
 		var total_base = 0;
 		for(var i=0;i<items_list.length;i++){
 			total_base += base[items_list[i]];
 		}
 
-		// compute proportional addition
-		var additions = {};
-		var sum_additions = 0;
+		var residual = leftover;
+
 		for(var i=0;i<items_list.length;i++){
 			var item = items_list[i];
-			additions[item] = Math.round(leftover * (base[item]/total_base));
-			sum_additions += additions[item];
+			if(item === "Gem stones") continue; // handle gems last
+
+			var share = Math.floor(leftover * base[item] / total_base);
+			targets[item] += share;
+			residual -= share;
 		}
 
-		// adjust rounding difference to match leftover exactly
-		var diff = leftover - sum_additions;
-		if(diff !== 0){
-			// adjust gems to absorb difference
-			additions["Gem stones"] += diff;
-		}
-
-		// apply additions
-		for(var i=0;i<items_list.length;i++){
-			targets[items_list[i]] += additions[items_list[i]];
-		}
+		// assign remaining residual to gems
+		targets["Gem stones"] += residual;
 	}
 
 	// buy only what is missing
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		var index = items.indexOf(item);
-		if(index === -1) continue;
+		if(index === -1 || !commodities[index] || commodities[index].buy_element == null) continue;
 
 		var need = targets[item] - existing[item];
-		if(need > 0 && commodities[index].buy_element != null){
-			// ensure we don't try to buy more than free space left
+		if(need > 0){
 			var space_left = ship_space.allowedSpace();
 			need = Math.min(need, space_left);
 			if(need > 0){
@@ -276,6 +269,7 @@ function GMstock9(){
 
 	submitIfNotPreview();
 }
+
 
 
     function loadConstructionMaterials() {
