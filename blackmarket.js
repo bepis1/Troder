@@ -178,48 +178,56 @@ function GMstock9(){
 
 	var items_list = ["Food","Energy","Water","Gem stones","Optical components"];
 
-	// existing stock
+	// compute total held of GM items
 	var existing = {};
+	var held_total = 0;
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		var index = items.indexOf(item);
-		existing[item] = (index !== -1 && commodities[index]) ? commodities[index].ship_stock : 0;
+		var held = (index !== -1 && commodities[index]) ? commodities[index].ship_stock : 0;
+		existing[item] = held;
+		held_total += held;
 	}
 
 	var free_space = ship_space.allowedSpace();
-	var held_total = Object.values(existing).reduce((a,b)=>a+b,0);
 
 	// compute scale factor
 	var base_sum = 0;
 	for(var i=0;i<items_list.length;i++){
 		base_sum += base[items_list[i]];
 	}
+
 	var scale = base_sum > 0 ? (free_space + held_total)/base_sum : 0;
 
 	// compute scaled targets
 	var targets = {};
-	var small_total = 0;
+	var used_space = 0;
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
-		if(item === "Gem stones"){
-			targets[item] = 0; // placeholder, will compute later
+		var scaled = base[item] * scale;
+
+		if(item !== "Gem stones"){
+			targets[item] = Math.ceil(scaled); // round small items up
 		} else {
-			targets[item] = Math.ceil(base[item] * scale);
-			small_total += targets[item];
+			targets[item] = Math.floor(scaled); // gems floor
 		}
+
+		used_space += targets[item];
 	}
 
-	// Gems absorb remaining space
-	var gem_target = free_space + held_total - small_total;
-	targets["Gem stones"] = Math.max(Math.floor(gem_target), 0);
+	// leftover space (only positive)
+	var leftover = free_space + held_total - used_space;
+	if(leftover > 0){
+		targets["Gem stones"] += leftover; // gems absorb only positive leftover
+	}
 
-	// compute buy amounts
+	// buy only what is missing
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		var index = items.indexOf(item);
 		if(index === -1 || !commodities[index] || commodities[index].buy_element == null) continue;
 
-		var need = Math.max(targets[item] - existing[item], 0);
+		var need = targets[item] - existing[item];
 		if(need > 0){
 			var space_left = ship_space.allowedSpace();
 			need = Math.min(need, space_left);
@@ -231,12 +239,6 @@ function GMstock9(){
 
 	submitIfNotPreview();
 }
-
-
-
-
-
-
 
 
     function loadConstructionMaterials() {
