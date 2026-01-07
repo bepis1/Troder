@@ -170,10 +170,10 @@ function GMstock9(){
 
 	var base = {
 		"Food": 26,
-		"Energy": 26,
-		"Water": 26,
-		"Gem stones": 224,
-		"Optical components": 53
+	"Energy": 26,
+	"Water": 26,
+	"Gem stones": 224,
+	"Optical components": 53
 	};
 
 	var items_list = ["Food","Energy","Water","Gem stones","Optical components"];
@@ -205,22 +205,25 @@ function GMstock9(){
 
 	// compute scaled targets as floats
 	var scaled_targets = {};
-	var fractional_remainders = {};
 	var used_space = 0;
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		var scaled = base[item] * scale;
-		var floored = Math.floor(scaled);
-		scaled_targets[item] = floored;
-		fractional_remainders[item] = scaled - floored;
-		used_space += floored;
+
+		// round up for smaller items (Food, Energy, Water, Optical components)
+		if(item !== "Gem stones"){
+			scaled_targets[item] = Math.ceil(scaled);
+		} else {
+			// gems: floor for now
+			scaled_targets[item] = Math.floor(scaled);
+		}
+
+		used_space += scaled_targets[item];
 	}
 
-	// assign leftover space to "Gem stones" as flex item
+	// adjust gems to absorb leftover space (positive or negative)
 	var leftover = free_space + held_total - used_space;
-	if(leftover > 0){
-		scaled_targets["Gem stones"] += leftover;
-	}
+	scaled_targets["Gem stones"] += leftover;
 
 	// buy only what is missing
 	for(var i=0;i<items_list.length;i++){
@@ -236,6 +239,7 @@ function GMstock9(){
 
 	submitIfNotPreview();
 }
+
 
 
 
