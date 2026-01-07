@@ -178,7 +178,7 @@ function GMstock9(){
 
 	var items_list = ["Food","Energy","Water","Gem stones","Optical components"];
 
-	// compute total held of GM items
+	// compute existing stock and total held
 	var existing = {};
 	var held_total = 0;
 	for(var i=0;i<items_list.length;i++){
@@ -196,39 +196,44 @@ function GMstock9(){
 	for(var i=0;i<items_list.length;i++){
 		base_sum += base[items_list[i]];
 	}
-
 	var scale = base_sum > 0 ? (free_space + held_total)/base_sum : 0;
 
-	// compute scaled targets
+	// initial targets: ceil small items, floor gems
 	var targets = {};
-	var used_space = 0;
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		var scaled = base[item] * scale;
-
 		if(item !== "Gem stones"){
-			targets[item] = Math.ceil(scaled); // round small items up
+			targets[item] = Math.ceil(scaled); // small items rounded up
 		} else {
-			targets[item] = Math.floor(scaled); // gems floor
+			targets[item] = Math.floor(scaled); // gems floored
 		}
-
-		used_space += targets[item];
 	}
 
-	// leftover space
-	var leftover = free_space + held_total - used_space;
+	// compute how much we actually need to buy
+	var need_to_buy = {};
+	var used_space = 0;
+	for(var i=0;i<items_list.length;i++){
+		var item = items_list[i];
+		need_to_buy[item] = Math.max(targets[item] - existing[item], 0);
+		used_space += need_to_buy[item];
+	}
+
+	// leftover space goes only to gems
+	var leftover = free_space - used_space;
 	if(leftover > 0){
-		targets["Gem stones"] += leftover; // gems absorb only positive leftover
+		need_to_buy["Gem stones"] += leftover;
 	}
 
-	// buy only what is missing
+	// perform the buys
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		var index = items.indexOf(item);
 		if(index === -1 || !commodities[index] || commodities[index].buy_element == null) continue;
 
-		var need = targets[item] - existing[item];
+		var need = need_to_buy[item];
 		if(need > 0){
+			// clamp to actual remaining space
 			var space_left = ship_space.allowedSpace();
 			need = Math.min(need, space_left);
 			if(need > 0){
@@ -239,6 +244,7 @@ function GMstock9(){
 
 	submitIfNotPreview();
 }
+
 
 
 
