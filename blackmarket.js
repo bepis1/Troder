@@ -195,11 +195,11 @@ function GMstock9(){
 	ensureFuel();
 
 	var base = {
-		"Food": 15,
-		"Energy": 15,
-		"Water": 15,
-		"Gem stones": 129,
-		"Optical components": 30
+		"Food": 26,
+		"Energy": 26,
+		"Water": 26,
+		"Gem stones": 224,
+		"Optical components": 53
 	};
 
 	var items_list = ["Food","Energy","Water","Gem stones","Optical components"];
