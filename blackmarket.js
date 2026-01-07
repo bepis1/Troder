@@ -152,22 +152,23 @@ function blackmarket() {
             buttons.addButton("Sell Drugs", unloadDrugs);
         }
 if (GM_getValue(universe + '_blackmarket_load_GM_stocking_enabled9', true)) {
-    buttons.addButton("Gem Merchant", function() {
-        loadMultiBuy("Gem_Merchant", [
-            "Food",
-            "Energy",
-            "Water",
-            "Gem stones",
-            "Optical components"
-        ], [
-            26,  // Food
-            26,  // Energy
-            26,  // Water
-            224, // Gem stones
-            53   // Optical components
-        ]);
-    });
+	buttons.addButton("Gem Merchant", function() {
+		loadMultiBuy("Gem_Merchant", [
+			"Food",
+			"Energy",
+			"Water",
+			"Optical components",
+			"Gem stones"
+		], [
+			26,
+			26,
+			26,
+			53,
+			224
+		]);
+	});
 }
+
 
         
         buttons.addStandardButtons();
