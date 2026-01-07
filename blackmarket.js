@@ -178,48 +178,60 @@ function GMstock9(){
 
 	var items_list = ["Food","Energy","Water","Gem stones","Optical components"];
 
-	// existing stock
+	// compute existing stock
 	var existing = {};
+	var held_total = 0;
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		var index = items.indexOf(item);
 		existing[item] = (index !== -1 && commodities[index]) ? commodities[index].ship_stock : 0;
+		held_total += existing[item];
 	}
 
 	var free_space = ship_space.allowedSpace();
-	var held_total = Object.values(existing).reduce((a,b)=>a+b,0);
 
 	// compute scale factor
-	var base_sum = 0;
-	for(var i=0;i<items_list.length;i++){
-		base_sum += base[items_list[i]];
-	}
-	var scale = base_sum > 0 ? (free_space + held_total)/base_sum : 0;
+	var base_sum = Object.values(base).reduce((a,b)=>a+b,0);
+	var scale = base_sum > 0 ? (free_space + held_total) / base_sum : 0;
 
-	// compute scaled targets
+	// scaled targets (floats)
+	var scaled = {};
+	for(var i=0;i<items_list.length;i++){
+		var item = items_list[i];
+		scaled[item] = base[item] * scale;
+	}
+
+	// round up small items (Food, Energy, Water, Optical), floor gems
 	var targets = {};
 	var small_total = 0;
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		if(item === "Gem stones"){
-			targets[item] = 0; // placeholder, will compute later
+			targets[item] = 0; // will compute later
 		} else {
-			targets[item] = Math.ceil(base[item] * scale);
+			targets[item] = Math.ceil(scaled[item]);
 			small_total += targets[item];
 		}
 	}
 
-	// Gems absorb remaining space
+	// Gems absorb remaining space to fit cargo exactly
 	var gem_target = free_space + held_total - small_total;
-	targets["Gem stones"] = Math.max(Math.floor(gem_target), 0);
+	targets["Gem stones"] = Math.max(Math.floor(gem_target), 0); // can't go negative
 
-	// compute buy amounts
+	// compute how much we actually need to buy
+	var need_to_buy = {};
+	for(var i=0;i<items_list.length;i++){
+		var item = items_list[i];
+		need_to_buy[item] = Math.max(targets[item] - existing[item], 0);
+	}
+
+	// clamp buys to remaining free space (just in case)
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		var index = items.indexOf(item);
 		if(index === -1 || !commodities[index] || commodities[index].buy_element == null) continue;
 
-		var need = Math.max(targets[item] - existing[item], 0);
+		var need = need_to_buy[item];
 		if(need > 0){
 			var space_left = ship_space.allowedSpace();
 			need = Math.min(need, space_left);
@@ -231,12 +243,6 @@ function GMstock9(){
 
 	submitIfNotPreview();
 }
-
-
-
-
-
-
 
 
     function loadConstructionMaterials() {
