@@ -151,11 +151,8 @@ function blackmarket() {
         if (GM_getValue(universe + '_blackmarket_sell_drugs_enabled', true)) {
             buttons.addButton("Sell Drugs", unloadDrugs);
         }
-        if (GM_getValue(universe + '_blackmarket_load_GM_stocking_enabled8', true)) {
-            buttons.addButton("GM Stocking LV 8", GMstock8);
-        }
         if (GM_getValue(universe + '_blackmarket_load_GM_stocking_enabled9', true)) {
-            buttons.addButton("GM Stocking LV 9", GMstock9);
+            buttons.addButton("Gem Merchant Stocking", GMstock9);
         }
         
         buttons.addStandardButtons();
@@ -167,30 +164,7 @@ function blackmarket() {
         submitIfNotPreview();
     }
 	
-function GMstock8(){
-        ensureFuel();
-	const loadout = {
-		"Food": 14,
-		"Energy": 14,
-		"Water": 14,
-		"Gem stones": 116,
-		"Optical components": 27
-	};
 
-	for(var item in loadout){
-		var index = items.indexOf(item);
-
-		if(index === -1){
-			continue;
-		}
-
-		if(commodities[index].buy_element != null){
-			commodities[index].buy(loadout[item]);
-		}
-	}
-
-	submitIfNotPreview();
-}
 function GMstock9(){
 	ensureFuel();
 
@@ -224,17 +198,28 @@ function GMstock9(){
 		base_sum += base[items_list[i]];
 	}
 
-	var total_required = base_sum;
 	var scale = 1;
-	if(total_required > free_space + held_total){
-		scale = (free_space + held_total)/total_required;
+	if(base_sum > free_space + held_total){
+		scale = (free_space + held_total)/base_sum;
 	}
 
-	// compute target amounts
-	var targets = {};
+	// compute scaled targets as floats
+	var scaled_targets = {};
+	var fractional_remainders = {};
+	var used_space = 0;
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
-		targets[item] = Math.floor(base[item] * scale);
+		var scaled = base[item] * scale;
+		var floored = Math.floor(scaled);
+		scaled_targets[item] = floored;
+		fractional_remainders[item] = scaled - floored;
+		used_space += floored;
+	}
+
+	// assign leftover space to "Gem stones" as flex item
+	var leftover = free_space + held_total - used_space;
+	if(leftover > 0){
+		scaled_targets["Gem stones"] += leftover;
 	}
 
 	// buy only what is missing
@@ -243,7 +228,7 @@ function GMstock9(){
 		var index = items.indexOf(item);
 		if(index === -1) continue;
 
-		var need = targets[item] - existing[item];
+		var need = scaled_targets[item] - existing[item];
 		if(need > 0 && commodities[index].buy_element != null){
 			commodities[index].buy(need);
 		}
@@ -251,6 +236,7 @@ function GMstock9(){
 
 	submitIfNotPreview();
 }
+
 
 
 
