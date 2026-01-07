@@ -178,15 +178,12 @@ function GMstock9(){
 
 	var items_list = ["Food","Energy","Water","Gem stones","Optical components"];
 
-	// compute existing stock and total held
+	// existing stock
 	var existing = {};
-	var held_total = 0;
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		var index = items.indexOf(item);
-		var held = (index !== -1 && commodities[index]) ? commodities[index].ship_stock : 0;
-		existing[item] = held;
-		held_total += held;
+		existing[item] = (index !== -1 && commodities[index]) ? commodities[index].ship_stock : 0;
 	}
 
 	var free_space = ship_space.allowedSpace();
@@ -196,44 +193,42 @@ function GMstock9(){
 	for(var i=0;i<items_list.length;i++){
 		base_sum += base[items_list[i]];
 	}
-	var scale = base_sum > 0 ? (free_space + held_total)/base_sum : 0;
+	var scale = base_sum > 0 ? (free_space + Object.values(existing).reduce((a,b)=>a+b,0))/base_sum : 0;
 
-	// initial targets: ceil small items, floor gems
-	var targets = {};
+	// compute scaled targets
+	var scaled_targets = {};
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
-		var scaled = base[item] * scale;
-		if(item !== "Gem stones"){
-			targets[item] = Math.ceil(scaled); // small items rounded up
-		} else {
-			targets[item] = Math.floor(scaled); // gems floored
-		}
+		scaled_targets[item] = base[item] * scale;
 	}
 
-	// compute how much we actually need to buy
-	var need_to_buy = {};
+	// ceil small items, floor gems
+	var targets = {};
 	var used_space = 0;
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
-		need_to_buy[item] = Math.max(targets[item] - existing[item], 0);
-		used_space += need_to_buy[item];
+		if(item === "Gem stones"){
+			targets[item] = Math.floor(scaled_targets[item]);
+		} else {
+			targets[item] = Math.ceil(scaled_targets[item]);
+		}
+		used_space += targets[item];
 	}
 
-	// leftover space goes only to gems
-	var leftover = free_space - used_space;
-	if(leftover > 0){
-		need_to_buy["Gem stones"] += leftover;
-	}
+	// adjust gems to absorb rounding difference
+	var total_scaled = Object.values(scaled_targets).reduce((a,b)=>a+b,0);
+	var rounding_diff = used_space - Math.floor(total_scaled);
+	targets["Gem stones"] -= rounding_diff;
+	if(targets["Gem stones"] < 0) targets["Gem stones"] = 0; // can't buy negative
 
-	// perform the buys
+	// compute buy amounts
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		var index = items.indexOf(item);
 		if(index === -1 || !commodities[index] || commodities[index].buy_element == null) continue;
 
-		var need = need_to_buy[item];
+		var need = Math.max(targets[item] - existing[item], 0);
 		if(need > 0){
-			// clamp to actual remaining space
 			var space_left = ship_space.allowedSpace();
 			need = Math.min(need, space_left);
 			if(need > 0){
@@ -244,6 +239,7 @@ function GMstock9(){
 
 	submitIfNotPreview();
 }
+
 
 
 
