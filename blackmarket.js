@@ -249,6 +249,7 @@ function GMstock9(){
 
 
 
+
     function loadConstructionMaterials() {
         unload(["Metal", "Ore", "Energy"]);
         ensureFuel();
