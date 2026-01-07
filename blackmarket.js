@@ -189,66 +189,36 @@ function GMstock9(){
 		held_total += held;
 	}
 
-	// total free space available
 	var free_space = ship_space.allowedSpace();
 
-	// sum of base
+	// compute scale factor
 	var base_sum = 0;
 	for(var i=0;i<items_list.length;i++){
 		base_sum += base[items_list[i]];
 	}
 
-	// scale factor to fit items in space
-	var scale = 1;
-	if(base_sum > 0){
-		scale = (free_space + held_total)/base_sum;
-	} else {
-		scale = 0;
-	}
+	var scale = base_sum > 0 ? (free_space + held_total)/base_sum : 0;
 
-	// compute scaled floats
-	var scaled_floats = {};
-	for(var i=0;i<items_list.length;i++){
-		var item = items_list[i];
-		scaled_floats[item] = base[item] * scale;
-	}
-
-	// initial targets: ceil small items, floor gems
+	// compute scaled targets
 	var targets = {};
 	var used_space = 0;
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
+		var scaled = base[item] * scale;
+
 		if(item !== "Gem stones"){
-			targets[item] = Math.ceil(scaled_floats[item]);
+			targets[item] = Math.ceil(scaled); // round small items up
 		} else {
-			targets[item] = Math.floor(scaled_floats[item]);
+			targets[item] = Math.floor(scaled); // gems floor
 		}
+
 		used_space += targets[item];
 	}
 
-	// leftover space (could be negative)
+	// leftover space
 	var leftover = free_space + held_total - used_space;
-
-	if(leftover !== 0){
-		// residual-corrected integer distribution
-		var total_base = 0;
-		for(var i=0;i<items_list.length;i++){
-			total_base += base[items_list[i]];
-		}
-
-		var residual = leftover;
-
-		for(var i=0;i<items_list.length;i++){
-			var item = items_list[i];
-			if(item === "Gem stones") continue; // handle gems last
-
-			var share = Math.floor(leftover * base[item] / total_base);
-			targets[item] += share;
-			residual -= share;
-		}
-
-		// assign remaining residual to gems
-		targets["Gem stones"] += residual;
+	if(leftover > 0){
+		targets["Gem stones"] += leftover; // gems absorb only positive leftover
 	}
 
 	// buy only what is missing
@@ -269,6 +239,7 @@ function GMstock9(){
 
 	submitIfNotPreview();
 }
+
 
 
 
