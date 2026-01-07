@@ -187,39 +187,31 @@ function GMstock9(){
 	}
 
 	var free_space = ship_space.allowedSpace();
+	var held_total = Object.values(existing).reduce((a,b)=>a+b,0);
 
 	// compute scale factor
 	var base_sum = 0;
 	for(var i=0;i<items_list.length;i++){
 		base_sum += base[items_list[i]];
 	}
-	var scale = base_sum > 0 ? (free_space + Object.values(existing).reduce((a,b)=>a+b,0))/base_sum : 0;
+	var scale = base_sum > 0 ? (free_space + held_total)/base_sum : 0;
 
 	// compute scaled targets
-	var scaled_targets = {};
-	for(var i=0;i<items_list.length;i++){
-		var item = items_list[i];
-		scaled_targets[item] = base[item] * scale;
-	}
-
-	// ceil small items, floor gems
 	var targets = {};
-	var used_space = 0;
+	var small_total = 0;
 	for(var i=0;i<items_list.length;i++){
 		var item = items_list[i];
 		if(item === "Gem stones"){
-			targets[item] = Math.floor(scaled_targets[item]);
+			targets[item] = 0; // placeholder, will compute later
 		} else {
-			targets[item] = Math.ceil(scaled_targets[item]);
+			targets[item] = Math.ceil(base[item] * scale);
+			small_total += targets[item];
 		}
-		used_space += targets[item];
 	}
 
-	// adjust gems to absorb rounding difference
-	var total_scaled = Object.values(scaled_targets).reduce((a,b)=>a+b,0);
-	var rounding_diff = used_space - Math.floor(total_scaled);
-	targets["Gem stones"] -= rounding_diff;
-	if(targets["Gem stones"] < 0) targets["Gem stones"] = 0; // can't buy negative
+	// Gems absorb remaining space
+	var gem_target = free_space + held_total - small_total;
+	targets["Gem stones"] = Math.max(Math.floor(gem_target), 0);
 
 	// compute buy amounts
 	for(var i=0;i<items_list.length;i++){
@@ -239,6 +231,7 @@ function GMstock9(){
 
 	submitIfNotPreview();
 }
+
 
 
 
