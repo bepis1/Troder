@@ -151,9 +151,25 @@ function blackmarket() {
         if (GM_getValue(universe + '_blackmarket_sell_drugs_enabled', true)) {
             buttons.addButton("Sell Drugs", unloadDrugs);
         }
-        if (GM_getValue(universe + '_blackmarket_load_GM_stocking_enabled9', true)) {
-            buttons.addButton("Gem Merchant", GMstock9);
-        }
+if (GM_getValue(universe + '_blackmarket_load_GM_stocking_enabled9', true)) {
+	buttons.addButton("Gem Merchant", function() {
+		loadMultiBuy("Gem_Merchant", [
+			"Food",
+			"Energy",
+			"Water",
+			"Optical components",
+			"Gem stones"
+		], [
+			26,
+			26,
+			26,
+			53,
+			224
+		]);
+	});
+}
+
+
         
         buttons.addStandardButtons();
     }
@@ -163,79 +179,6 @@ function blackmarket() {
         attempt_sell("Drugs", GM_getValue(universe + '_blackmarket_drugs_to_sell', 2));
         submitIfNotPreview();
     }
-	
-
-function GMstock9(){
-	ensureFuel();
-
-	var base = {
-		"Food": 26,
-		"Energy": 26,
-		"Water": 26,
-		"Gem stones": 224,
-		"Optical components": 53
-	};
-
-	var items_list = ["Food","Energy","Water","Gem stones","Optical components"];
-
-	// existing stock
-	var existing = {};
-	for(var i=0;i<items_list.length;i++){
-		var item = items_list[i];
-		var index = items.indexOf(item);
-		existing[item] = (index !== -1 && commodities[index]) ? commodities[index].ship_stock : 0;
-	}
-
-	var free_space = ship_space.allowedSpace();
-
-	// scale factor
-	var base_sum = Object.values(base).reduce((a,b)=>a+b,0);
-	var scale = base_sum > 0 ? free_space / base_sum : 0;
-
-	// scaled targets
-	var targets = {};
-	var small_items = ["Food","Energy","Water","Optical components"];
-	for(var i=0;i<items_list.length;i++){
-		var item = items_list[i];
-		if(small_items.includes(item)){
-			targets[item] = Math.ceil(base[item] * scale); // round up
-		} else {
-			targets[item] = Math.floor(base[item] * scale); // gems floor
-		}
-	}
-
-	// compute how much small items we actually need to buy
-	var need_small_total = 0;
-	for(var i=0;i<small_items.length;i++){
-		var item = small_items[i];
-		var need = Math.max(targets[item] - existing[item], 0);
-		need_small_total += need;
-	}
-
-	// gems absorb remaining space
-	var gem_buy = free_space - need_small_total;
-	targets["Gem stones"] = Math.max(gem_buy, 0);
-
-	// compute buy amounts
-	for(var i=0;i<items_list.length;i++){
-		var item = items_list[i];
-		var index = items.indexOf(item);
-		if(index === -1 || !commodities[index] || commodities[index].buy_element == null) continue;
-
-		var need = Math.max(targets[item] - existing[item], 0);
-		if(need > 0){
-			var space_left = ship_space.allowedSpace();
-			need = Math.min(need, space_left);
-			if(need > 0){
-				commodities[index].buy(need);
-			}
-		}
-	}
-
-	submitIfNotPreview();
-}
-
-
 
     function loadConstructionMaterials() {
         unload(["Metal", "Ore", "Energy"]);
