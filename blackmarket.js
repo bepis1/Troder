@@ -166,7 +166,7 @@ function blackmarket() {
 	
 
 function GMstock9(){
-
+ensureFuel();
 	var base = {
 		"Food": 26,
 		"Energy": 26,
